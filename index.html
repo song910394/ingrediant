@@ -1,0 +1,334 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>烘焙成本管理系統</title>
+    <link href="style.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <!-- 導覽列 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="nav-title"><i class="fas fa-birthday-cake"></i> 烘焙成本管理系統</h1>
+            <div class="nav-menu">
+                <button class="nav-item active" onclick="showPage('ingredients')">
+                    <i class="fas fa-egg"></i> 原料管理
+                </button>
+                <button class="nav-item" onclick="showPage('recipes')">
+                    <i class="fas fa-utensils"></i> 產品配方管理
+                </button>
+                <button class="nav-item" onclick="showPage('products')">
+                    <i class="fas fa-shopping-cart"></i> 販售商品管理
+                </button>
+                <button class="nav-item" onclick="showPage('packaging')">
+                    <i class="fas fa-box"></i> 包裝材料管理
+                </button>
+                <button class="nav-item" onclick="showPage('nutrition')">
+                    <i class="fas fa-leaf"></i> 營養成分管理
+                </button>
+                <button class="nav-item" onclick="showPage('recipe-nutrition')">
+                    <i class="fas fa-chart-bar"></i> 配方營養成分表
+                </button>
+                <button class="nav-item backup-btn" onclick="showBackupPanel()">
+                    <i class="fas fa-database"></i> 資料備份
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要內容區域 -->
+    <main class="main-content">
+        <!-- 原料管理頁面 -->
+        <div id="ingredients-page" class="page active">
+            <div class="page-header">
+                <h2><i class="fas fa-egg"></i> 原料管理</h2>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="showAddIngredientForm()">
+                        <i class="fas fa-plus"></i> 新增原料
+                    </button>
+                    <button class="btn btn-secondary" onclick="exportData('ingredients')">
+                        <i class="fas fa-download"></i> 匯出Excel
+                    </button>
+                    <button class="btn btn-secondary" onclick="importData('ingredients')">
+                        <i class="fas fa-upload"></i> 匯入Excel
+                    </button>
+                    
+                </div>
+            </div>
+            
+            <div class="search-bar">
+                <input type="text" id="ingredients-search" placeholder="搜尋原料名稱..." onkeyup="searchTable('ingredients')">
+                <button class="btn btn-danger" onclick="deleteSelectedItems('ingredients')">
+                    <i class="fas fa-trash"></i> 批次刪除
+                </button>
+            </div>
+
+            <div class="table-container">
+                <table id="ingredients-table" class="data-table">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" onchange="selectAllItems('ingredients', this)"></th>
+                            <th>原料名稱</th>
+                            <th>分類</th>
+                            <th>單位</th>
+                            <th>單價 (元)</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ingredients-tbody">
+                        <!-- 資料將由JavaScript動態生成 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 產品配方管理頁面 -->
+        <div id="recipes-page" class="page">
+            <div class="page-header">
+                <h2><i class="fas fa-utensils"></i> 產品配方管理</h2>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="showAddRecipeForm()">
+                        <i class="fas fa-plus"></i> 新增配方
+                    </button>
+                    <button class="btn btn-secondary" onclick="exportData('recipes')">
+                        <i class="fas fa-download"></i> 匯出Excel
+                    </button>
+                    <button class="btn btn-secondary" onclick="importData('recipes')">
+                        <i class="fas fa-upload"></i> 匯入Excel
+                    </button>
+                    
+                </div>
+            </div>
+            
+            <div class="search-bar">
+                <input type="text" id="recipes-search" placeholder="搜尋配方名稱..." onkeyup="searchTable('recipes')">
+                <button class="btn btn-danger" onclick="deleteSelectedItems('recipes')">
+                    <i class="fas fa-trash"></i> 批次刪除
+                </button>
+            </div>
+
+            <div class="table-container">
+                <table id="recipes-table" class="data-table">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" onchange="selectAllItems('recipes', this)"></th>
+                            <th>配方名稱</th>
+                            <th>分類</th>
+                            <th>總份量</th>
+                            <th>總重量 (g)</th>
+                            <th>總成本 (元)</th>
+                            <th>每克成本 (元)</th>
+                            <th>每份成本 (元)</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recipes-tbody">
+                        <!-- 資料將由JavaScript動態生成 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 販售商品管理頁面 -->
+        <div id="products-page" class="page">
+            <div class="page-header">
+                <h2><i class="fas fa-shopping-cart"></i> 販售商品管理</h2>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="showAddProductForm()">
+                        <i class="fas fa-plus"></i> 新增商品
+                    </button>
+                    <button class="btn btn-secondary" onclick="exportData('products')">
+                        <i class="fas fa-download"></i> 匯出Excel
+                    </button>
+                    <button class="btn btn-secondary" onclick="importData('products')">
+                        <i class="fas fa-upload"></i> 匯入Excel
+                    </button>
+                    
+                </div>
+            </div>
+            
+            <div class="search-bar">
+                <input type="text" id="products-search" placeholder="搜尋商品名稱..." onkeyup="searchTable('products')">
+                <button class="btn btn-danger" onclick="deleteSelectedItems('products')">
+                    <i class="fas fa-trash"></i> 批次刪除
+                </button>
+            </div>
+
+            <div class="table-container">
+                <table id="products-table" class="data-table">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" onchange="selectAllItems('products', this)"></th>
+                            <th>商品名稱</th>
+                            <th>商品類別</th>
+                            <th>包含配方</th>
+                            <th>總成本 (元)</th>
+                            <th>售價 (元)</th>
+                            <th>利潤 (元)</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="products-tbody">
+                        <!-- 資料將由JavaScript動態生成 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 包裝材料管理頁面 -->
+        <div id="packaging-page" class="page">
+            <div class="page-header">
+                <h2><i class="fas fa-box"></i> 包裝材料管理</h2>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="showAddPackagingForm()">
+                        <i class="fas fa-plus"></i> 新增包裝
+                    </button>
+                    <button class="btn btn-secondary" onclick="exportData('packaging')">
+                        <i class="fas fa-download"></i> 匯出Excel
+                    </button>
+                    <button class="btn btn-secondary" onclick="importData('packaging')">
+                        <i class="fas fa-upload"></i> 匯入Excel
+                    </button>
+                    
+                </div>
+            </div>
+            
+            <div class="search-bar">
+                <input type="text" id="packaging-search" placeholder="搜尋包裝名稱..." onkeyup="searchTable('packaging')">
+                <button class="btn btn-danger" onclick="deleteSelectedItems('packaging')">
+                    <i class="fas fa-trash"></i> 批次刪除
+                </button>
+            </div>
+
+            <div class="table-container">
+                <table id="packaging-table" class="data-table">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" onchange="selectAllItems('packaging', this)"></th>
+                            <th>包裝名稱</th>
+                            <th>種類</th>
+                            <th>包裝成本 (元)</th>
+                            <th>備註</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="packaging-tbody">
+                        <!-- 資料將由JavaScript動態生成 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 營養成分管理頁面 -->
+        <div id="nutrition-page" class="page">
+            <div class="page-header">
+                <h2><i class="fas fa-leaf"></i> 營養成分管理</h2>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="showAddNutritionForm()">
+                        <i class="fas fa-plus"></i> 新增營養成分
+                    </button>
+                    <button class="btn btn-secondary" onclick="exportData('nutrition')">
+                        <i class="fas fa-download"></i> 匯出Excel
+                    </button>
+                    <button class="btn btn-secondary" onclick="importData('nutrition')">
+                        <i class="fas fa-upload"></i> 匯入Excel
+                    </button>
+                    
+                </div>
+            </div>
+            
+            <div class="search-bar">
+                <input type="text" id="nutrition-search" placeholder="搜尋原料名稱..." onkeyup="searchTable('nutrition')">
+                <button class="btn btn-danger" onclick="deleteSelectedItems('nutrition')">
+                    <i class="fas fa-trash"></i> 批次刪除
+                </button>
+            </div>
+
+            <div class="table-container">
+                <table id="nutrition-table" class="data-table">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" onchange="selectAllItems('nutrition', this)"></th>
+                            <th>原料名稱</th>
+                            <th>熱量 (kcal/100g)</th>
+                            <th>蛋白質 (g/100g)</th>
+                            <th>脂肪 (g/100g)</th>
+                            <th>飽和脂肪 (g/100g)</th>
+                            <th>反式脂肪 (g/100g)</th>
+                            <th>碳水化合物 (g/100g)</th>
+                            <th>糖 (g/100g)</th>
+                            <th>鈉 (mg/100g)</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="nutrition-tbody">
+                        <!-- 資料將由JavaScript動態生成 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 配方營養成分表頁面 -->
+        <div id="recipe-nutrition-page" class="page">
+            <div class="page-header">
+                <h2><i class="fas fa-chart-bar"></i> 配方營養成分表</h2>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" onclick="exportData('recipe-nutrition')">
+                        <i class="fas fa-download"></i> 匯出Excel
+                    </button>
+                </div>
+            </div>
+            
+            <div class="search-bar">
+                <input type="text" id="recipe-nutrition-search" placeholder="搜尋配方名稱..." onkeyup="searchTable('recipe-nutrition')">
+                <button class="btn btn-danger" onclick="deleteSelectedItems('recipe-nutrition')">
+                    <i class="fas fa-trash"></i> 批次刪除
+                </button>
+            </div>
+
+            <div class="table-container">
+                <table id="recipe-nutrition-table" class="data-table">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" onchange="selectAllItems('recipe-nutrition', this)"></th>
+                            <th>配方名稱</th>
+                            <th>每份重量 (g)</th>
+                            <th>熱量 (kcal/份)</th>
+                            <th>蛋白質 (g/份)</th>
+                            <th>脂肪 (g/份)</th>
+                            <th>飽和脂肪 (g/份)</th>
+                            <th>反式脂肪 (g/份)</th>
+                            <th>碳水化合物 (g/份)</th>
+                            <th>糖 (g/份)</th>
+                            <th>鈉 (mg/份)</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recipe-nutrition-tbody">
+                        <!-- 資料將由JavaScript動態生成 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- 通用彈出視窗 -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div id="modal-body">
+                <!-- 彈出視窗內容將由JavaScript動態生成 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 隱藏的檔案輸入元素 -->
+    <input type="file" id="file-input" accept=".xls,.xlsx" style="display: none" onchange="handleFileImport(event)">
+
+    <script src="script.js"></script>
+</body>
+</html>
